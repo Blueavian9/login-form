@@ -2,30 +2,29 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
 const PORT = 3555;
-const secretKey = "sewserFSWERFGGFersfgwsergfeWRFGwseEF3434345TERt"; // Change this to a secure secret key
+const secretKey = "server.js"; // Change this to a secure secret key
 
 // Middleware to parse JSON
 app.use(bodyParser.json());
 app.use(cors());
 
-// Dummy user for demonstration purposes
-const User1 = {
-  username: "user123",
-  password: "password123",
-};
+// Connect to SQLite database
+const db = new sqlite3.Database("users.db");
 
-const User2 = {
-  username: "Bloom",
-  password: "12345",
-};
+// Create users table if not exists
+db.serialize(() => {
+  db.run(
+    "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT)"
+  );
+});
 
 const checkToken = (req, res, next) => {
   let token = req.header("Authorization");
   token = token.slice(7);
-  console.log("Token from check", token);
 
   if (!token) {
     return res.status(401).json({ error: "Unauthorized - Token missing" });
@@ -40,24 +39,59 @@ const checkToken = (req, res, next) => {
   }
 };
 
+// Signup endpoint
+app.post("/signup", (req, res) => {
+  const { username, password } = req.body;
+
+  // Check if username already exists
+  db.get("SELECT * FROM users WHERE username = ?", [username], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    if (row) {
+      return res.status(400).json({ error: "Username already exists" });
+    }
+
+    // Insert new user into the database
+    db.run(
+      "INSERT INTO users (username, password) VALUES (?, ?)",
+      [username, password],
+      (err) => {
+        if (err) {
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        res.status(201).json({ message: "User created successfully" });
+      }
+    );
+  });
+});
+
 // Login endpoint
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
-  // Check if the username and password match the dummy user
-  if (
-    (username === User1.username && password === User1.password) ||
-    (username === User2.username && password === User2.password)
-  ) {
-    // Generate a JWT token
-    const token = jwt.sign({ username }, secretKey, { expiresIn: "1h" });
+  // Check credentials against database
+  db.get(
+    "SELECT * FROM users WHERE username = ? AND password = ?",
+    [username, password],
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
 
-    // Send the token as a response
-    res.json({ token });
-  } else {
-    // Return unauthorized if credentials are invalid
-    res.status(401).json({ error: "Invalid credentials" });
-  }
+      if (row) {
+        // Generate a JWT token
+        const token = jwt.sign({ username }, secretKey, { expiresIn: "1h" });
+        // Send the token as a response
+        res.json({ token });
+      } else {
+        // Return unauthorized if credentials are invalid
+        res.status(401).json({ error: "Invalid credentials" });
+      }
+    }
+  );
 });
 
 app.get("/dashboard", checkToken, (req, res) => {

@@ -42,3 +42,17 @@ function getDashboard() {
     })
     .catch((err) => (window.location.href = "index.html"));
 }
+
+function handleSignUp() {
+  const params = {
+    username: username.value,
+    password: password.value,
+  };
+
+  axios
+    .post("http://localhost:3555/signup", params)
+    .then((res) => res.data)
+    .then((data) => {
+      console.log(data.message);
+    });
+}
