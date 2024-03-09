@@ -449,3 +449,11 @@ li a.active {
 .form label {
     cursor: default;
 }
+
+.div.centered-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 25px;
+    margin-bottom: 35px;
+}
