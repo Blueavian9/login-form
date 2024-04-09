@@ -40,7 +40,7 @@ const checkToken = (req, res, next) => {
 };
 
 // Signup endpoint
-app.post("/signup", (req, res) => {
+app.post("/sign-up.html", (req, res) => {
   const { username, password } = req.body;
 
   // Check if username already exists
@@ -69,7 +69,7 @@ app.post("/signup", (req, res) => {
 });
 
 // Login endpoint
-app.post("/login", (req, res) => {
+app.post("/login.html", (req, res) => {
   const { username, password } = req.body;
 
   // Check credentials against database
@@ -94,7 +94,7 @@ app.post("/login", (req, res) => {
   );
 });
 
-app.get("/dashboard", checkToken, (req, res) => {
+app.get("/dash.html", checkToken, (req, res) => {
   const { username } = req.user;
   res.json({ message: `Welcome to the dashboard, ${username}!` });
 });
