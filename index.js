@@ -21,6 +21,27 @@ function handleSubmit() {
     });
 }
 
+function handleSignUp(e) {
+  e.preventDefault();
+  console.log("working!", e.target.value);
+  const params = {
+    username: usernameInput.value,
+    password: passwordInput.value,
+  };
+
+  axios
+    .post("http://localhost:3555/sign-up", params)
+    .then((res) => res.data)
+    .then((data) => {
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        window.location.href = "dash.html";
+      } else {
+        console.log("no token provided");
+      }
+    });
+}
+
 function handleLogOut() {
   localStorage.removeItem("token");
   window.location.href = "index.html";
@@ -79,5 +100,3 @@ function showSlides(n) {
   slides[slideIndex - 1].style.display = "block";
   dots[slideIndex - 1].className += " active";
 }
- 
-
