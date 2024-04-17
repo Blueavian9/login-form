@@ -68,31 +68,6 @@ app.post("/sign-up", (req, res) => {
   });
 });
 
-// Login endpoint
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-
-  // Check credentials against database
-  db.get(
-    "SELECT * FROM users WHERE username = ? AND password = ?",
-    [username, password],
-    (err, row) => {
-      if (err) {
-        return res.status(500).json({ error: "Internal Server Error" });
-      }
-
-      if (row) {
-        // Generate a JWT token
-        const token = jwt.sign({ username }, secretKey, { expiresIn: "1h" });
-        // Send the token as a response
-        res.json({ token });
-      } else {
-        // Return unauthorized if credentials are invalid
-        res.status(401).json({ error: "Invalid credentials" });
-      }
-    }
-  );
-});
 
 app.get("/dash", checkToken, (req, res) => {
   const { username } = req.user;
